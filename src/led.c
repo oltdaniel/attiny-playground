@@ -3,6 +3,28 @@
 
 #include "utils.h"
 
+// Schematics
+// - = - = - = -
+//
+//   VCC
+//    |
+//    |
+//    |
+//    | | | |
+//   +--------+
+//   |        |
+//   |ATTINY25|
+//   |        |
+//   +--------+
+//    | | | |
+//        | |
+//   +----+ |
+//   |      |
+// +---+    |
+// |LED|----|
+// +---+    |
+//          GND
+
 int main (void) {
 	// setup pb4 for output
 	high(DDRB, PB4);

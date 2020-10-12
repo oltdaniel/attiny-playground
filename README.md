@@ -40,7 +40,10 @@ The following commands exist:
 
 ## Projects
 
+> **NOTE**: The schematics for each project can be found in its own source file in form of a comment.
+
 - **LED Flicker**: Connect an LED with PB4 and GND of the ATtiny, compile with `./build.sh c led` and flash with `./build.sh f led` and observe.
+- **LED Button Polling**: Turn on the LED on PB4 if a button signal is given on PB0, else turn it off. Compile with `./build.sh c led_button_polling` and flash with `./build.sh f led_button_polling` and observe.
 
 ## LICENSE
 
