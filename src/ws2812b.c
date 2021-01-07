@@ -27,8 +27,8 @@
 /**
  * These are some fancy cycle consumers from light_ws2812
  */
-#define w_nop1 "nop      \n\t"
-#define w_nop2 "brid .+0 \n\t"
+#define w_nop1 "nop \n\t"
+#define w_nop2 "rjmp .+0 \n\t"
 #define w_nop4 w_nop2 w_nop2
 #define w_nop8 w_nop4 w_nop4
 #define w_nop16 w_nop8 w_nop8
@@ -58,29 +58,29 @@
  * 
  * - Code1:
  * --------|400ns
- * 850ns---|_____
+ * 850ns   |_____
  * 
  * As we use nop's to wait for the certain cycles, we need to watch
  * our own code overhead of cycles. There we have 2 for the base cycles,
- * 4 for our delta cycles and a total of 8 cycles.
+ * 4 for our delta cycles and with a total of 6 cycles.
  */
 #define BASE_CYCLES (NS_TO_CYCLES(400) - 2)
 #define DELTA_CYCLES (NS_TO_CYCLES(400) - 4)
-#define FINAL_CYCLES (NS_TO_CYCLES(450) - 8)
+#define FINAL_CYCLES (NS_TO_CYCLES(450) - 6)
 
 /**
  * We take the num_bytes bytes our of data and send them out to the defined port.
  * The global interrupt will be disabled and if it was set, enabled again in the end.
  */
-static inline void sendBytes(uint8_t *data, uint8_t num_bytes)
+static inline void ws2812b_send_bytes(const uint8_t *data, uint8_t num_bytes)
 {
     // this little helper, will be counted down for the shifts
     uint8_t i;
     // point to the current byte
-    uint8_t *cur = data;
+    const uint8_t *cur = data;
     // save our current GIEB SREG state
-    uint8_t gieb_prev = SREG & (1 << 7);
-    // clear interrupe bit
+    const uint8_t gieb_prev = SREG & (1 << 7);
+    // clear interrupt bit
     cli();
     while (num_bytes--)
     {
@@ -149,8 +149,7 @@ static inline void sendBytes(uint8_t *data, uint8_t num_bytes)
             "dec %[i] \n\t" // decrement our loop counter
             "brne loop \n\t" // if we reached zero, exit, else jump back to loop
             : [i] "=&d"(i)
-            :
-            [data] "r"(*cur), // we need the value of the current byte we want to send
+            : [data] "r"(*cur), // we need the value of the current byte we want to send
             [port] "I"(_SFR_IO_ADDR(PIXEL_PORT)), // as we use assembly, we need to address for our port
             [pin] "I"(PIXEL_PIN)); // the pin we use for communication
         // next byte
@@ -163,26 +162,31 @@ static inline void sendBytes(uint8_t *data, uint8_t num_bytes)
 /**
  * The WS2812B define their reset time for 50µs in the datasheet.
  */
-static inline void show()
+static inline void ws2812b_show()
 {
     // waiting for 50µs
     _delay_us(50);
 }
 
 /**
+ * Send a single pixel out the pipe.
+ */
+static inline void ws2812b_set_single(uint8_t r, uint8_t g, uint8_t b) {
+    ws2812b_send_bytes((const uint8_t[]){g, r, b}, 3);
+}
+
+/**
  * Here we will set all leds to the same color.
  */
-void showColor(uint8_t r, uint8_t g, uint8_t b)
+static inline void ws2812b_set_all(uint8_t r, uint8_t g, uint8_t b)
 {
-    // create the data array to show on the WS2812B
-    // important: the will interpret the colors with grb not rgb.
-    uint8_t data[] = {g, r, b};
+    // set every led to the correct color
     for (uint8_t i = 0; i < PIXEL_NUM; i++)
     {
-        sendBytes(data, 3);
+        ws2812b_set_single(r, g, b);
     }
     // make sure to send the reset signal to update the colors.
-    show();
+    ws2812b_show();
 }
 
 int main()
@@ -191,17 +195,17 @@ int main()
     DDRB |= (1 << PIXEL_PIN);
     // make sure the pin is low
     PORTB &= ~(1 <<PIXEL_PIN);
-    // our program loop
+    // testing the colors over and over
     for (;;)
     {
         // make sure red works
-        showColor(0xFF, 0, 0);
+        ws2812b_set_all(0xFF, 0, 0);
         _delay_ms(1000);
-        // make sure red works
-        showColor(0, 0xFF, 0);
+        // make sure gree works
+        ws2812b_set_all(0, 0xFF, 0);
         _delay_ms(1000);
-        // make sure red works
-        showColor(0, 0, 0xFF);
+        // make sure blue works
+        ws2812b_set_all(0, 0, 0xFF);
         _delay_ms(1000);
     }
 }

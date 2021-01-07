@@ -45,6 +45,7 @@ compile() {
     avr-gcc $CFLAGS -Os -DF_CPU=$FCPU -mmcu=$MMCU -c src/$FILE.c -o build/$FILE.o -Iinclude
 	avr-gcc $CFLAGS -DF_CPU=$FCPU -mmcu=$MMCU -o build/$FILE.elf build/$FILE.o
 	avr-objcopy -O ihex build/$FILE.elf build/$FILE.hex
+    avr-size build/$FILE.elf --mcu=$MMCU -C
     log "SUC" "Compiled."
 }
 
