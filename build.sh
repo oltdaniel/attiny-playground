@@ -9,6 +9,7 @@ if [[ -z $MMCU ]]; then
     MMCU=attiny25
 fi
 # check if fcpu is give, else set default to 1MHz
+# default attiny25's from the factory have 1MHz
 if [[ -z $FCPU ]]; then
     FCPU=1000000
 fi
@@ -39,9 +40,10 @@ log() {
 
 # compile function taking no parameters
 compile() {
+    local CFLAGS="-g3"
     mkdir -p build
-    avr-gcc -Os -DF_CPU=$FCPU -mmcu=$MMCU -c src/$FILE.c -o build/$FILE.o -Iinclude
-	avr-gcc -DF_CPU=$FCPU -mmcu=$MMCU -o build/$FILE.elf build/$FILE.o
+    avr-gcc $CFLAGS -Os -DF_CPU=$FCPU -mmcu=$MMCU -c src/$FILE.c -o build/$FILE.o -Iinclude
+	avr-gcc $CFLAGS -DF_CPU=$FCPU -mmcu=$MMCU -o build/$FILE.elf build/$FILE.o
 	avr-objcopy -O ihex build/$FILE.elf build/$FILE.hex
     log "SUC" "Compiled."
 }
@@ -53,7 +55,7 @@ flash() {
         log "ERR" "build/$FILE.hex does not exist."
         return
     fi
-    avrdude -b $BAUD -c avrisp -p $MMCU -P $PORT -U flash:w:build/$FILE.hex
+    avrdude -b $BAUD -c avrisp -p $MMCU -P $PORT -U flash:w:build/$FILE.hex -F
     log "SUC" "Flashed."
 }
 

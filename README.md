@@ -38,12 +38,15 @@ The following commands exist:
 - 'h' or 'help': Print this message.
 ```
 
+> **NOTE**: If you change F_CPU you still need to set the correct fuses. A tutorial for that will follow.
+
 ## Projects
 
 > **NOTE**: The schematics for each project can be found in its own source file in form of a comment.
 
 - **LED Flicker**: Connect an LED with PB4 and GND of the ATtiny, compile with `./build.sh c led` and flash with `./build.sh f led` and observe.
 - **LED Button Polling**: Turn on the LED on PB4 if a button signal is given on PB0, else turn it off. Compile with `./build.sh c led_button_polling` and flash with `./build.sh f led_button_polling` and observe.
+- **WS2812B**: The `WS2812B` or better known for NeoPixel are LEDs you can put into series and send a long signal to set each led to a different color. A lot of work went into optimizing the code to use as less flash as possible as the attiny25 doesn't have much. But it works and you can test it with `FCPU=16000000 ./build.sh c ws2812b` and `FCPU=16000000 ./build.sh f ws2812b`. Make sure you set the fuses of the attiny that it runs on 16MHz.
 
 ## LICENSE
 
